@@ -23,9 +23,17 @@ class GamesControllers {
       rating,
     });
 
-    const insertTags = await knex("")
+    const insertTags = tags.map(name => {
+        return{
+            game_id, 
+            name, 
+            user_id
+        }
+    })
 
-    response.json();
+    await knex("tagsGames").insert(insertTags)
+
+    return response.json();
   }
 }
 
