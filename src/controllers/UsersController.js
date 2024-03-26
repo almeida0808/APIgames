@@ -43,6 +43,7 @@ class UsersControllers {
     if (userWithUpdatedEmail && userWithUpdatedEmail.id !== user.id) {
       throw new AppError("Esse email está em uso");
     }
+    
     user.name = name;
     user.email = email;
 
@@ -71,14 +72,6 @@ class UsersControllers {
     response.json();
   }
 
-  //
-
-  // if (VerifyEmailInUse && VerifyEmailInUse.id !== user.id) {
-  //   throw new AppError("Este e-mail já está cadastrado");
-  // }
-
-  // user.name = name
-  // user.email = email
 }
 
 module.exports = UsersControllers;
