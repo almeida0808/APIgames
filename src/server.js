@@ -28,6 +28,5 @@ app.use((error, request, response, next) => {
     })
 })
 
-
 const PORT = 3333; // definimos o ndereço da porta
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

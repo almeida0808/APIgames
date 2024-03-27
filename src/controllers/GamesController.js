@@ -40,34 +40,54 @@ class GamesControllers {
   async show(request, response) {
     const { id } = request.params;
 
-    const game = await knex("notesGames").where({id}).first()
+    const game = await knex("notesGames").where({ id }).first();
 
-  const tags = await knex("tagsGames").where({game_id: id}).orderBy("name")
-    if(!game){
-      throw new AppError("Ops... Essa nota não existe.")
+    const tags = await knex("tagsGames").where({ game_id: id }).orderBy("name");
+
+    if (!game) {
+      throw new AppError("Ops... Essa nota não existe.");
     }
-    return response.json({...note,
-    tags})
+    return response.json({ ...note, tags });
   }
 
-  async delete(request,response){
-    const {id} = request.params
+  async delete(request, response) {
+    const { id } = request.params;
 
-    const game = await knex("notesGames").where({id}).delete()
+    const game = await knex("notesGames").where({ id });
 
-    if(!game){
-      throw new AppError("Ops... Essa nota não existe.")
+    if (!game) {
+      throw new AppError("Ops... Essa nota não existe.");
     }
- 
-    response.json()
+
+    response.json();
   }
 
-  async index(request, response){
-    const {user_id} = request.query
+  async index(request, response) {
+    const { user_id, title, tags } = request.query;
 
-    const games = await knex("notesGames").where({user_id}).orderBy("title")
+    let games;
 
-    response.json({games})
+    if (tags) {
+      const filterTags = tags.split(",").map((tag) => tag.trim()); // esse filter tags cria um array dessa maneira ["tag1", "tag2"]
+
+      games = await knex("tagsGames")
+      .select(
+        "notesGames.id",
+        "notesGames.title",
+        "notesGames.user_id"
+      )
+      .where('notesGames.user_id',user_id)
+      .whereLike("notesGames.title", `%${title}%`)
+      .whereIn("name", filterTags)
+      .innerJoin("notesGames","notesGames.id","tagsGames.game_id")
+      .orderBy("notesGames.title")
+    } else {
+      games = await knex("notesGames")
+        .where({ user_id })
+        .whereLike("title", `%${title}%`)
+        .orderBy("title");
+    }
+    return response.json({ games });
   }
 }
 
