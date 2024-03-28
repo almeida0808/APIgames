@@ -47,7 +47,7 @@ class GamesControllers {
     if (!game) {
       throw new AppError("Ops... Essa nota não existe.");
     }
-    return response.json({ ...note, tags });
+    return response.json({ ...game, tags });
   }
 
   async delete(request, response) {
@@ -71,23 +71,31 @@ class GamesControllers {
       const filterTags = tags.split(",").map((tag) => tag.trim()); // esse filter tags cria um array dessa maneira ["tag1", "tag2"]
 
       games = await knex("tagsGames")
-      .select(
-        "notesGames.id",
-        "notesGames.title",
-        "notesGames.user_id"
-      )
-      .where('notesGames.user_id',user_id)
-      .whereLike("notesGames.title", `%${title}%`)
-      .whereIn("name", filterTags)
-      .innerJoin("notesGames","notesGames.id","tagsGames.game_id")
-      .orderBy("notesGames.title")
+        .select(["notesGames.id", "notesGames.title", "notesGames.user_id"])
+        .where("notesGames.user_id", user_id)
+        .whereLike("notesGames.title", `%${title}%`)
+        .whereIn("name", filterTags)
+        .innerJoin("notesGames", "notesGames.id", "tagsGames.game_id")
+        .orderBy("notesGames.title");
     } else {
       games = await knex("notesGames")
         .where({ user_id })
         .whereLike("title", `%${title}%`)
         .orderBy("title");
     }
-    return response.json({ games });
+
+    const userTags = await knex("tagsGames").where({ user_id });
+
+    const GamesWithTags = games.map((game) => {
+      const gameTags = userTags.filter((tag) => tag.game_id === game.id); // mostra apenas as tags que estajam vinvuladas cons os games que foram pesquisados
+
+      return {
+        ...game,
+        tags: gameTags,
+      };
+    });
+
+    return response.json({ GamesWithTags });
   }
 }
 
