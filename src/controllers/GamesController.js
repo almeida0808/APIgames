@@ -53,11 +53,13 @@ class GamesControllers {
   async delete(request, response) {
     const { id } = request.params;
 
-    const game = await knex("notesGames").where({ id });
+    const game = await knex("notesGames").where({ id }).first();
 
     if (!game) {
       throw new AppError("Ops... Essa nota não existe.");
     }
+
+    await knex("notesGames").where({ id }).delete();
 
     response.json();
   }

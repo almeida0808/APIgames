@@ -36,47 +36,59 @@ class UsersControllers {
     if (!user) {
       throw new AppError("Esse usuário não existe");
     }
-    const userWithUpdatedEmail = await knex("users")
-      .where("email", email)
-      .first();
 
-    if (userWithUpdatedEmail && userWithUpdatedEmail.id !== user.id) {
-      throw new AppError("Esse email está em uso");
-    }
-    
-    user.name = name;
+
+/// criamos uma verificação pra ver se oo usuário deseja atualizar seu email, tirando o bug de não conseguir alterar outras informações sem colocar um email
+    if (email && user.email !== email) {// se tiver um novo email passado, ele verifica se o email antigo(user.email) é = ao novo email(email)
+      const userWithUpdatedEmail = await knex("users")
+          .where("email", email)
+          .first();
+  
+      if (userWithUpdatedEmail && userWithUpdatedEmail.id !== user.id) {
+          throw new AppError("Esse email está em uso");
+          
+      }
+
     user.email = email;
+  }
+
+  if (name) {
+    user.name = name;
+}
+
 
     if (password && !old_password) {
       throw new AppError("Digite sua senha antiga");
     }
 
     if (password && old_password) {
+     
+
       const old_passwordCorrect = await compare(old_password, user.password);
 
       if (!old_passwordCorrect) {
         throw new AppError("Digite uma senha válida");
       }
-      
+
       user.password = await hash(password, 8);
     }
 
     await knex("users")
       .where({ id })
       .update({
-        name: user.name,
         email: user.email,
+        name: user.name,
         password: user.password,
         updated_at: knex.raw("DATETIME('now')"),
       });
     response.json();
   }
 
-  async delete(request, response){
-    const {id} = request.params
-    await knex("users").where({id}).delete()
-  
-    response.json()
+  async delete(request, response) {
+    const { id } = request.params;
+    await knex("users").where({ id }).delete();
+
+    response.json();
   }
 }
 
